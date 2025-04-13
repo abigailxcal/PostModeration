@@ -4,6 +4,7 @@ This project applies Natural Language Processing (NLP) and supervised machine le
 ## Methodology
 ### Dataset
 - (insert sources of dataset used to train supervised ML models)
+- [Kaggle: Hate Speech and Offensive Language Dataset](https://www.kaggle.com/datasets/mrmorj/hate-speech-and-offensive-language-dataset)
 ### Data Preprocessing
 - Removal of usernames, URLs, and special characters
 - Lowercasing text
@@ -33,6 +34,8 @@ Automated moderation is prone to:
 - Misclassification of slang, dialects, or minority language
 - Over-removal of content reducing free expression
 These challenges highlight the importance of combining machine learning with human moderation review systems.
+
+**Note**: Should we focus on moderation of things that are objectively and indisputably inappropriate? like avoid moderating posts for misinformation since that could potentially be a touchy subject (im not trynna debate with the class lmao) but maybe moderate posts on offensive attacks or innappropriate content
 
 ## Deployment
 - Flask or FastAPI?
