@@ -5,6 +5,9 @@ This project applies Natural Language Processing (NLP) and supervised machine le
 ### Dataset
 - (insert sources of dataset used to train supervised ML models)
 - [Kaggle: Hate Speech and Offensive Language Dataset](https://www.kaggle.com/datasets/mrmorj/hate-speech-and-offensive-language-dataset)
+    - labeled_data.csv
+- [Kaggle: Hate Speech Detection curated Dataset](https://www.kaggle.com/datasets/waalbannyantudre/hate-speech-detection-curated-dataset/data)
+    - HateSpeechDataset.csv
 ### Data Preprocessing
 - Removal of usernames, URLs, and special characters
 - Lowercasing text
