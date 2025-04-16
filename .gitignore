@@ -1,0 +1,40 @@
+# Ignore Python cache and bytecode files
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore environment files
+.env
+.venv/
+env/
+venv/
+
+# Ignore data files (especially large CSVs)
+*.csv
+*.tsv
+*.xls
+*.xlsx
+*.json
+*.parquet
+*.h5
+*.db
+
+# Specifically ignore your large dataset
+TrainingData/HateSpeechDatasetBalanced.csv
+
+# Logs and runtime files
+*.log
+*.pid
+
+# Mac and system files
+.DS_Store
+Thumbs.db
+
+# VSCode or PyCharm settings (optional)
+.vscode/
+.idea/
