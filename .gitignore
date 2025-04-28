@@ -38,3 +38,6 @@ Thumbs.db
 # VSCode or PyCharm settings (optional)
 .vscode/
 .idea/
+bert_model/model.safetensors
+bert_model/vocab.txt
+bert_model/
