@@ -27,6 +27,8 @@ st.markdown(
 # ===================== MODEL LOADING =====================
 @st.cache_resource
 def load_model():
+    # model = DistilBertForSequenceClassification.from_pretrained("Bert_Model_ABG")
+    # tokenizer = DistilBertTokenizer.from_pretrained("Bert_Model_ABG")
     model = DistilBertForSequenceClassification.from_pretrained("Bert_Model")
     tokenizer = DistilBertTokenizer.from_pretrained("Bert_Model")
     model.eval()
