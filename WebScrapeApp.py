@@ -8,6 +8,10 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 
+# TEST TWEET URLS:
+# not malicious:   https://x.com/ppyowna/status/1916866370949755368
+# malicious:    https://x.com/DonLagoTV/status/1910518593340543479
+
 # ===================== BACKGROUND STYLING =====================
 st.markdown(
     """
@@ -24,8 +28,8 @@ st.markdown(
 # ===================== MODEL LOADING =====================
 @st.cache_resource
 def load_model():
-    model = DistilBertForSequenceClassification.from_pretrained("Bert_Model1")
-    tokenizer = DistilBertTokenizer.from_pretrained("Bert_Model1")
+    model = DistilBertForSequenceClassification.from_pretrained("Bert_Model")
+    tokenizer = DistilBertTokenizer.from_pretrained("Bert_Model")
     model.eval()
     return model, tokenizer
 
@@ -56,7 +60,10 @@ def get_tweet_text(tweet_url):
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920x1080")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    
+    #  this doesn't work for me for some reason vvv
+    #driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options)
 
     try:
         driver.get(tweet_url)
