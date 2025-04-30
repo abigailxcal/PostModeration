@@ -1,9 +1,12 @@
+import os
+os.environ["STREAMLIT_WATCHER_PAUSE_ON_NO_HANDLE"] = "1"
+
 import streamlit as st
 import re
 import torch
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.service import Service 
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
@@ -11,6 +14,20 @@ import time
 # TEST TWEET URLS:
 # not malicious:   https://x.com/ppyowna/status/1916866370949755368
 # malicious:    https://x.com/DonLagoTV/status/1910518593340543479
+
+#NTS: this web scrape file will only work with the base cnda environment. for training/ipynb files, ASl-Translator env works better 
+# NTS: things to visualize in the data:
+# - how much of the training data came from each CSV
+# - word count of the tweets from each csv that show if malicious tweets tend to be shorter 
+# - outliers? how much of the data wasn't in english or how much was actual nonsense 
+# April 29 NTS: Bert_Model2 is the most recently trained bert model with the closest accuracy that reflects Rane's bert model metrics
+# I should delete my Bert_Model folder and rename Bert_Model2 to Bert_Model 
+
+# Evaluation Results: {'eval_loss': 0.23020809888839722, 'eval_accuracy': 0.9084373817631479, 'eval_precision_not_malicious': 0.9324296985636253, 'eval_recall_not_malicious': 0.879076864390616, 
+#                      'eval_f1_not_malicious': 0.9049676025917927, 'eval_precision_malicious': 0.8873689820572037, 'eval_recall_malicious': 0.9373240758115969, 'eval_f1_malicious': 0.9116627121737544,
+#                      'eval_runtime': 8.7387, 'eval_samples_per_second': 1209.797, 'eval_steps_per_second': 37.878, 'epoch': 2.0}
+
+
 
 # ===================== BACKGROUND STYLING =====================
 st.markdown(
@@ -55,13 +72,32 @@ def classify_text(text):
     return f"{label} ({confidence}% confidence)", cleaned
 
 # ===================== TWEET SCRAPER =====================
-def get_tweet_text(tweet_url):
+# def get_tweet_text(tweet_url):
+#     options = Options()
+#     options.add_argument("--headless")
+#     options.add_argument("--disable-gpu")
+#     options.add_argument("--window-size=1920x1080")
+#     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+#     try:
+#         driver.get(tweet_url)
+#         time.sleep(3)  # wait for tweet to load
+#         tweet_text = driver.find_element("xpath", '//div[@data-testid="tweetText"]').text
+#     except Exception as e:
+#         tweet_text = None
+#     driver.quit()
+#     return tweet_text
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+def get_tweet_text(tweet_url, max_retries=2):
     options = Options()
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920x1080")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-    
+
     #  this doesn't work for me for some reason vvv
     #driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options)
 
