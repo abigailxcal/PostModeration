@@ -11,6 +11,24 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 
+# TEST TWEET URLS:
+# not malicious:   https://x.com/ppyowna/status/1916866370949755368
+# malicious:    https://x.com/DonLagoTV/status/1910518593340543479
+
+#NTS: this web scrape file will only work with the base cnda environment. for training/ipynb files, ASl-Translator env works better 
+# NTS: things to visualize in the data:
+# - how much of the training data came from each CSV
+# - word count of the tweets from each csv that show if malicious tweets tend to be shorter 
+# - outliers? how much of the data wasn't in english or how much was actual nonsense 
+# April 29 NTS: Bert_Model2 is the most recently trained bert model with the closest accuracy that reflects Rane's bert model metrics
+# I should delete my Bert_Model folder and rename Bert_Model2 to Bert_Model 
+
+# Evaluation Results: {'eval_loss': 0.23020809888839722, 'eval_accuracy': 0.9084373817631479, 'eval_precision_not_malicious': 0.9324296985636253, 'eval_recall_not_malicious': 0.879076864390616, 
+#                      'eval_f1_not_malicious': 0.9049676025917927, 'eval_precision_malicious': 0.8873689820572037, 'eval_recall_malicious': 0.9373240758115969, 'eval_f1_malicious': 0.9116627121737544,
+#                      'eval_runtime': 8.7387, 'eval_samples_per_second': 1209.797, 'eval_steps_per_second': 37.878, 'epoch': 2.0}
+
+
+
 # ===================== BACKGROUND STYLING =====================
 st.markdown(
     """
@@ -27,8 +45,6 @@ st.markdown(
 # ===================== MODEL LOADING =====================
 @st.cache_resource
 def load_model():
-    # model = DistilBertForSequenceClassification.from_pretrained("Bert_Model_ABG")
-    # tokenizer = DistilBertTokenizer.from_pretrained("Bert_Model_ABG")
     model = DistilBertForSequenceClassification.from_pretrained("Bert_Model")
     tokenizer = DistilBertTokenizer.from_pretrained("Bert_Model")
     model.eval()
@@ -80,95 +96,19 @@ def get_tweet_text(tweet_url, max_retries=2):
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920x1080")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    
-    tweet_text = None
-    attempt = 0
-    
-    while attempt < max_retries:
-        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
-        try:
-            driver.get(tweet_url)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
-            # ⏳ Wait up to 10 seconds for the div
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//div[@data-testid="tweetText"]'))
-            )
+    #  this doesn't work for me for some reason vvv
+    #driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options)
 
-            # ✅ Grab the tweet text
-            tweet_div = driver.find_element(By.XPATH, '//div[@data-testid="tweetText"]')
-            tweet_text = tweet_div.text.strip()
-
-            if tweet_text:
-                print(f"✅ Tweet scraped successfully on attempt {attempt+1}")
-                driver.quit()
-                return tweet_text
-
-        except Exception as e:
-            print(f"❌ Error scraping tweet (attempt {attempt+1}):", e)
-            attempt += 1
-            driver.quit()
-            time.sleep(2)  # wait a little before retrying
-
-    print("❌ Failed to scrape tweet after retries.")
-    return None
-
-# def get_tweet_text(tweet_url):
-#     from selenium.webdriver.common.by import By
-#     from selenium.webdriver.support.ui import WebDriverWait
-#     from selenium.webdriver.support import expected_conditions as EC
-
-#     options = Options()
-#     options.add_argument("--headless")
-#     options.add_argument("--disable-gpu")
-#     options.add_argument("--window-size=1920x1080")
-#     options.add_argument("--no-sandbox")
-#     options.add_argument("--disable-dev-shm-usage")
-#     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
-#     tweet_text = None
-#     try:
-#         driver.get(tweet_url)
-
-#         # Wait up to 10 seconds for the tweetText div to appear
-#         WebDriverWait(driver, 10).until(
-#             EC.presence_of_element_located((By.XPATH, '//div[@data-testid="tweetText"]'))
-#         )
-
-#         # Now grab that div
-#         tweet_div = driver.find_element(By.XPATH, '//div[@data-testid="tweetText"]')
-#         tweet_text = tweet_div.text.strip()
-
-#     except Exception as e:
-#         print("❌ Error fetching tweet:", e)
-#     finally:
-#         driver.quit()
-    
-#     return tweet_text
-
-# def get_tweet_text(tweet_url):
-#     options = Options()
-#     options.add_argument("--headless")
-#     options.add_argument("--disable-gpu")
-#     options.add_argument("--window-size=1920x1080")
-#     options.add_argument("--no-sandbox")
-#     options.add_argument("--disable-dev-shm-usage")
-#     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
-#     tweet_text = None
-#     try:
-#         driver.get(tweet_url)
-#         time.sleep(5)  # Longer wait time — Twitter is slow
-#         tweet_text_element = driver.find_element("xpath", '//article//div[@lang]')
-#         tweet_text = tweet_text_element.text
-#     except Exception as e:
-#         print("Error fetching tweet:", e)
-#     finally:
-#         driver.quit()
-    
-#     return tweet_text
-
+    try:
+        driver.get(tweet_url)
+        time.sleep(3)  # wait for tweet to load
+        tweet_text = driver.find_element("xpath", '//div[@data-testid="tweetText"]').text
+    except Exception as e:
+        tweet_text = None
+    driver.quit()
+    return tweet_text
 
 # ===================== STREAMLIT UI =====================
 st.title("🧠 TweetSweep AI")

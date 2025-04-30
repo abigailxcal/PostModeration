@@ -41,4 +41,4 @@ Thumbs.db
 bert_model/model.safetensors
 bert_model/vocab.txt
 bert_model/
-bert_model_abg/
+bert_model2/
