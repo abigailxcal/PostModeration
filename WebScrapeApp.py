@@ -29,8 +29,6 @@ import time
 
 
 
-
-
 # ===================== BACKGROUND STYLING =====================
 st.markdown(
     """
@@ -42,7 +40,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
 
 # ===================== MODEL LOADING =====================
 @st.cache_resource
@@ -74,35 +71,19 @@ def classify_text(text):
     return f"{label} ({confidence}% confidence)", cleaned
 
 # ===================== TWEET SCRAPER =====================
-# def get_tweet_text(tweet_url):
-#     options = Options()
-#     options.add_argument("--headless")
-#     options.add_argument("--disable-gpu")
-#     options.add_argument("--window-size=1920x1080")
-#     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
-#     try:
-#         driver.get(tweet_url)
-#         time.sleep(3)  # wait for tweet to load
-#         tweet_text = driver.find_element("xpath", '//div[@data-testid="tweetText"]').text
-#     except Exception as e:
-#         tweet_text = None
-#     driver.quit()
-#     return tweet_text
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
 def get_tweet_text(tweet_url, max_retries=2):
     options = Options()
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920x1080")
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    # options.add_argument("--disable-popup-blocking")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-
     #  this doesn't work for me for some reason vvv
     #driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options)
-
     try:
         driver.get(tweet_url)
         time.sleep(3)  # wait for tweet to load
@@ -113,7 +94,7 @@ def get_tweet_text(tweet_url, max_retries=2):
     return tweet_text
 
 # ===================== STREAMLIT UI =====================
-st.title("🧠 TweetSweep AI")
+st.title("TweetSweep AI")
 tweet_url = st.text_input("Paste a public tweet URL:")
 
 if tweet_url:
@@ -126,7 +107,7 @@ if tweet_url:
         st.markdown(f"### Result: {label}")
         st.markdown(f"**Tweet Content:**\n> {cleaned_text}")
     else:
-        st.error("❌ Could not fetch tweet. Make sure the URL is public and correct.")
+        st.error("Could not fetch tweet. Make sure the URL is public and correct.")
 
 
 
