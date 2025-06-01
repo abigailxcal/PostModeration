@@ -1,0 +1,5 @@
+May 30:
+- it seems like it was more efficient afterall to designate ratios through integers, not percentages. womp womp. 
+- i think BERT will always perform better than LSTM and SVM
+- okay so it seems like crowdsourced dataset labeled most usages of the n-word as malicious, when most of them aren't really. I relied a lot on that data because it just seemed
+more reliable since it was yknow... crowdsourced, but i think when it comes to touching on the subject of racial bias, it doesn't seem as reliable. 

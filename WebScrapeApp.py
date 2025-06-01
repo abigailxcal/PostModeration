@@ -4,12 +4,17 @@ os.environ["STREAMLIT_WATCHER_PAUSE_ON_NO_HANDLE"] = "1"
 import streamlit as st
 import re
 import torch
+import numpy as np
+import time
+import tensorflow as tf
+import pickle
+from keras.preprocessing.sequence import pad_sequences
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-import time
+
 
 # TEST TWEET URLS:
 # not malicious:   https://x.com/ppyowna/status/1916866370949755368
@@ -43,16 +48,25 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
-# ===================== MODEL LOADING =====================
+# ===================== MODEL LOADING: LSTM =====================
 @st.cache_resource
-def load_model():
-    model = DistilBertForSequenceClassification.from_pretrained("Bert_Model")
-    tokenizer = DistilBertTokenizer.from_pretrained("Bert_Model")
+def load_lstm_model():
+    model = tf.keras.models.load_model('LSTM_Model/lstm_model.h5')
+    #load tokenizer
+    with open('LSTM_Model/tokenizer.pickle', 'rb') as handle:
+        tokenizer = pickle.load(handle)
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    return model, tokenizer
+#model, tokenizer = load_lstm_model()
+
+# ===================== MODEL LOADING: Bert =====================
+@st.cache_resource
+def load_Bert_model():
+    model = DistilBertForSequenceClassification.from_pretrained("Bert_Model_reworkedData")
+    tokenizer = DistilBertTokenizer.from_pretrained("Bert_Model_reworkedData")
     model.eval()
     return model, tokenizer
-
-model, tokenizer = load_model()
+model, tokenizer = load_Bert_model()
 
 # ===================== TEXT CLEANING =====================
 def clean_text(text):
@@ -60,6 +74,13 @@ def clean_text(text):
     text = re.sub(r'(rt)?\s?@\w+:?', ' ', text)
     text = re.sub(r'http\S+', ' ', text)
     return text
+
+def clean_text_lstm(text):
+    text = re.sub(r'(rt)?\s?@\w+:?', '', text)
+    text = re.sub(r'(RT)?\s?@\w+:?', '', text)
+    text = re.sub(r'http\S+', '', text)
+    text = re.sub(r'[^A-Za-z\'\s]', '', text)
+    return text.lower().strip()
 
 # ===================== CLASSIFICATION =====================
 def classify_text(text):
@@ -73,22 +94,20 @@ def classify_text(text):
     confidence = round(probs[0][pred].item() * 100, 2)
     return f"{label} ({confidence}% confidence)", cleaned
 
-# ===================== TWEET SCRAPER =====================
-# def get_tweet_text(tweet_url):
-#     options = Options()
-#     options.add_argument("--headless")
-#     options.add_argument("--disable-gpu")
-#     options.add_argument("--window-size=1920x1080")
-#     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-#     try:
-#         driver.get(tweet_url)
-#         time.sleep(3)  # wait for tweet to load
-#         tweet_text = driver.find_element("xpath", '//div[@data-testid="tweetText"]').text
-#     except Exception as e:
-#         tweet_text = None
-#     driver.quit()
-#     return tweet_text
+def classify_text_lstm(text):
+    cleaned = clean_text_lstm(text)
+    seq = tokenizer.texts_to_sequences([cleaned])
+    padded = pad_sequences(seq, maxlen=50, padding='post')  # adjust if your LSTM uses a different maxlen
+    prob = model.predict(padded)[0][0]
+    
+    label = "🚨 Malicious" if prob > 0.7 else "✅ Not Malicious"
+    confidence = round(prob * 100, 2) if prob > 0.5 else round((1 - prob) * 100, 2)
+
+    return f"{label} ({confidence}% confidence)", cleaned
+
+
+# ===================== TWEET SCRAPER =====================
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -98,8 +117,7 @@ def get_tweet_text(tweet_url, max_retries=2):
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920x1080")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
     #  this doesn't work for me for some reason vvv
     #driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=options)
 
